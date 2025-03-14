@@ -1,6 +1,13 @@
 
-export addTimer, Cell, Stimulus, stimulate, age, CellEvent, Division, Death, addObserver, CellType, cellType, GenericCell
+export addTimer, Cell, Stimulus, stimulate, age, CellEvent, 
+  Division, Death, addObserver, CellType, cellType, GenericCell,
+  setAllowTimerInheritanceByReference
 
+allowTimerInheritanceByReference = false
+function setAllowTimerInheritanceByReference(v::Bool) 
+  global allowTimerInheritanceByReference
+  allowTimerInheritanceByReference = v
+end
 #---------------------- Cell events ---------------------
 """
 CellEvent
@@ -140,6 +147,14 @@ age(cell::Cell, time::Time)::Duration = time - cell.birth
 "Internal, probably not necassary"
 function die(::AbstractCell)::Nothing end
 
+function inheritAndCheck(timer::FateTimer, time::Time)::FateTimer
+  newTimer = inherit(timer, time)
+  if newTimer === timer && !allowTimerInheritanceByReference
+    error("Do not inherit timers by reference. This can lead to unexpected behaviour.")
+  end
+  return newTimer
+end
+
 """
 Create a daughter from the mother and reset the mother's state.
 This is called internally.
@@ -155,8 +170,8 @@ function divide(cell::AbstractCell, time::Time)
   # see the inherit method for more detail
   for i in 1:length(cell.timers)
     timer = cell.timers[i]
-    cell.timers[i] = inherit(timer, time)
-    addTimer(new_cell, inherit(timer, time))
+    cell.timers[i] = inheritAndCheck(timer, time)
+    addTimer(new_cell, inheritAndCheck(timer, time))
   end
 
   return new_cell

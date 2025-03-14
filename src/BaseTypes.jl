@@ -75,3 +75,6 @@ end
 AgentImpl(agent::CytonAgent) = AgentImpl(0, (0, 0), agent)
 AgentImpl(id::Int, agent::CytonAgent) = AgentImpl(id, (0, 0), agent)
 #----------------------------------------------------------
+
+#-------- The options interface -------#
+abstract type CytonOption end
